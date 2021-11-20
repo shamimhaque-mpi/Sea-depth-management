@@ -52,7 +52,15 @@
 					<div class="row" v-for="(attr, index) in submited_attr" v-bind:key="index">
 						<div class="col-12 border">
 							<div style="height: 62vh; overflow: auto;">
-								<div :id="(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;"></div>
+								<div :id="(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;">
+									<div style="height: 62vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+										<div>
+											<span style="font-size: 60px; color: #d8d6d6;">¯\_(ツ)_/¯</span>
+											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">{{attr.standard_name}}</span>
+											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">Data is not found</span>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

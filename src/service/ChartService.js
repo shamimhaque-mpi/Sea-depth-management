@@ -139,7 +139,7 @@ export default
                     for(var index in well.data){
                         if(dom_id==index.slice((index.lastIndexOf('__')+2)) || dom_id==index.slice((index.indexOf('_')+1))){
                             option.push({
-                                "x"     : well.data[index],
+                                "x"     : well.data[index].filter(x=>{if(x>0) return x}),
                                 "name"  : well.name,
                                 "type"  : "histogram",
                                 "histnorm" : "probability",
@@ -151,6 +151,7 @@ export default
                 });
 
                 if(option.length > 0){
+                    console.log(document.querySelector('#'+dom_id));
                     document.querySelector('#'+dom_id).innerHTML='';
                     var layout  = {
                         bargap: 0.05,
