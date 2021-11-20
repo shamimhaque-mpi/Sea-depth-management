@@ -1,11 +1,11 @@
-#  Sakai Admin Template for Vue  
+#  Drilling Data Management With Vue CLI
  
 ### Live Preview
  
-Visit [Sakai Vue](https://www.primefaces.org/sakai-vue) website for a live preview. 
+Visit [Shamim Portfolio](https://www.shamim.codetourism.com) website for a live preview. 
  
 ### Getting Started
-Sakai is an application template for Vue based on the [Vue CLI](https://cli.vuejs.org/) that provides out-of-the-box standard
+Vue based on the [Vue CLI](https://cli.vuejs.org/) that provides out-of-the-box standard
 tooling for Vue projects. To get started, clone this repository from GitHub and install the dependencies with npm or yarn.
                 
 ```
@@ -19,7 +19,7 @@ yarn
 ```
 
 Next step is running the application using the serve script and navigate to **http://localhost:8080/** to view the application.
-That is it, you may now start with the development of your application using the Sakai template.</p>
+That is it, you may now start with the development of your application using the Vue template.</p>
 
 ```
 npm run serve
@@ -46,7 +46,7 @@ Menu is a separate component defined in **AppMenu.vue** file based on PrimeVue M
 navigate to data section of **App.vue** file and define your own model as a nested structure using the **menu** property.
 
 ### Dependencies
-Dependencies of Sakai are listed below and needs to be added to package.json.
+Dependencies are listed below and needs to be added to package.json.
 
 ```json
 {
@@ -57,7 +57,7 @@ Dependencies of Sakai are listed below and needs to be added to package.json.
 ```
 
 ### PrimeVue Theme
-Sakai uses the free Saga, Arya and Vela themes which are distributed within PrimeVue, however it can be used with any PrimeVue theme as well such as material, tailwind and bootstrap as layout colors are derived from the theme used via CSS variables.
+Drilling System uses the free Saga, Arya and Vela themes which are distributed within PrimeVue, however it can be used with any PrimeVue theme as well such as material, tailwind and bootstrap as layout colors are derived from the theme used via CSS variables.
 
 ### SASS Variables
 In case you'd like to customize the layout variables, open **_variables.scss** file under src/layout folder. The list is pretty short as majority of the variables are derived from the PrimeVue theme being used.
