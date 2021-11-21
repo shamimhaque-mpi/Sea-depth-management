@@ -169,6 +169,113 @@ export default
         }
     },
 
+    timeSpacificalVisualization:function(data, attribute, grid, time=true)
+    {
+        if(grid.value=='single'){
+            Object.values(data).forEach((well)=>{
+                var name = well.name;
+                var time_value = well.data.time;
+                for(var attr in well.data){
+                    attr = attr.replace('_dot_', '_');
+                    if(attr!='time')
+                    {
+                        var dom_id        = (name.replaceAll('$', '_'))+'at'+(attr.slice(attr.lastIndexOf('__')+2));
+                        var exist_unit    = (dom_id.slice(dom_id.lastIndexOf('at')+2, dom_id.lastIndexOf('_id'))).replaceAll('_', '.');
+                        var standard_attr = ''; 
+
+                        if(time){
+                            dom_id     = (name.replaceAll('$', '_'))+'at'+(attr.slice(attr.indexOf('_')+1));
+                            exist_unit = (dom_id.slice(dom_id.lastIndexOf('at')+2, dom_id.lastIndexOf('_id'))).replaceAll('_', '.');
+                        }
+
+                        // 
+                        var node = document.querySelector('#'+dom_id);
+                        if(node){
+                            node.innerHTML = '';
+                            // 
+                            Object.values(attribute).forEach((standard_att)=>{
+                                if(standard_att.unit==exist_unit){
+                                    standard_attr = standard_att;
+                                }
+                            });
+
+                            var option = [
+                                {
+                                    type: 'scatter',
+                                    mode: 'line',
+                                    marker:{ size:3},
+                                    x: this.data_shorting(time_value, 1000),
+                                    y: this.data_shorting(well.data[attr], 1000),
+                                }
+                            ];
+
+                            var layout  = {
+                                bargap: 0.05,
+                                bargroupgap: 0.2,
+                                barmode: "overlay",
+                                // height: 405,
+                                // width: 648,
+                                title: {text: name},
+                                yaxis: {title: standard_attr.standard_name},
+                                xaxis: {
+                                    autorange: true,
+                                    type: 'date'
+                                },
+                            };
+                            window.Plotly.newPlot(dom_id, option, layout);
+                        }
+                    }
+                }
+
+            });
+
+        }
+
+        else if(grid.value=='multiple'){
+            Object.values(attribute).forEach((attr)=>{
+                var dom_id = (attr.unit).replaceAll('.', '_')+'_id_'+attr.id;
+
+                var option = [];
+                //
+                Object.values(data).forEach(well=>{
+                    var time_value = well.data.time;
+                    for(var index in well.data){
+                        if(index!='time'){
+                            if(dom_id==index.slice((index.lastIndexOf('__')+2)) || dom_id==index.slice((index.indexOf('_')+1))){
+                                option.push({
+                                    type: 'scatter',
+                                    mode: 'line',
+                                    marker:{ size:3},
+                                    x: this.data_shorting(time_value, 1000),
+                                    y: this.data_shorting(well.data[attr], 1000),
+                                });
+                            }
+                        }
+                        
+                    }
+                });
+
+                if(option.length > 0){
+                    document.querySelector('#'+dom_id).innerHTML='';
+                    var layout  = {
+                        bargap: 0.05,
+                        bargroupgap: 0.2,
+                        barmode: "overlay",
+                        // height: 405,
+                        // width: 648,
+                        title: {text: name},
+                        yaxis: {title: attr.standard_name},
+                        xaxis: {
+                            autorange: true,
+                            type: 'date'
+                        },
+                    };
+                    window.Plotly.newPlot(dom_id, option, layout);
+                }
+            });
+        }
+    },
+
     data_shorting:function(data, num){
         var len = data.length, j, i, y;
         if(len<num+1) return data;

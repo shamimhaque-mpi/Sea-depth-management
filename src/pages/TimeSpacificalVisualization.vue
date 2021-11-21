@@ -3,12 +3,10 @@
 		<div class="col-12">
 			<div class="card" style="min-height: 79vh;">
 				<div class="custom-table-head">
-					<h5>Time Spacific Visualization</h5>
+					<h5>Time Spacifical Visualization</h5>
 					<Dropdown v-model="grid" :options="griding" optionLabel="name" placeholder="Select" />
 				</div>
-
 				<hr style="margin-top: 2px;">
-
 				<div class="grid p-fluid">
 					<div class="col-12 md:col-5">
 						<span class="p-float-label">
@@ -99,9 +97,8 @@ export default {
 		//
 	},
 	mounted() {
-		axios.get('http://drillbotics.ddns.net:4000//visualize/1/time')
+		axios.get('http://drillbotics.ddns.net:4001/visualize/1/time')
 		.then(response=>{
-			console.log(response.data);
 			this.visualizes = response.data[0];
 			this.attributes = response.data[1];
 		});
@@ -112,13 +109,13 @@ export default {
 			this.submited_wells = [];
 			this.submited_attr  = [];
 
-			axios.post('http://drillbotics.ddns.net:4000/visualize/time', [
+			axios.post('http://drillbotics.ddns.net:4001/visualize/time', [
 				this.wells, this.attribute, [[], []]
 			])
 			.then(response=>{
 				this.submited_wells = this.wells;
 				this.submited_attr  = this.attribute;
-				this.data_sanitization(response.data);
+				this.data_sanitization(this.reformat(response.data));
 			});
 		},
 		data_sanitization:function(depth_data)
@@ -161,7 +158,40 @@ export default {
 			.catch(err=>console.log(err.message))
 		},
 		generateGrap:function(){
-			setTimeout(()=>{ChartService.spacificVisualization(this.depth_list, this.attribute,  this.grid), 100});
+			setTimeout(()=>{ChartService.timeSpacificalVisualization(this.depth_list, this.attribute,  this.grid, true), 100});
+		},
+		reformat:function(data){
+			var reformated_data = [];
+			var check_well = [];
+
+			Object.values(data).forEach(item=>{
+				if(check_well.indexOf(item.well_name)<0){
+					check_well.push(item.well_name);
+					reformated_data.push({
+						name:item.well_name,
+						data:[]
+					});
+				}
+			});
+
+			Object.values(data).forEach(item=>{
+				(reformated_data).forEach((well, key)=>{
+					if(well.name && well.name==item.well_name){
+						var old_array = reformated_data[key].data;
+						reformated_data[key].data = old_array.concat(this.replaceKeyByattr(item));
+					}
+				});
+			});
+
+			return reformated_data;
+		},
+		replaceKeyByattr:function(data){
+			var attr    = data.well_att;
+			var packet = [];
+			Object.values(data.data).forEach(item=>{
+				packet.push({[attr]:item.mean_value, time:item.time});
+			});
+			return packet;
 		}
 	},
 	watch:{
