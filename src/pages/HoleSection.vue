@@ -5,14 +5,18 @@
 				<div class="custom-table-head">
 					<h5>Hole Section</h5>
 				</div>
-
-				<hr style="margin-top: 2px">
-
 				<div class="grid p-fluid">
 					<div class="col-12 md:col-5">
 						<span class="p-float-label">
 							<MultiSelect id="multiselect" :options="visualizes" v-model="wells" optionLabel="name" :filter="true"></MultiSelect>
-							<label for="multiselect">Select Wells From The List</label>
+							<label for="multiselect">Wells</label>
+						</span>
+					</div>
+
+					<div class="col-12 md:col-5">
+						<span class="p-float-label">
+							<MultiSelect id="multiselect" :options="attributes" v-model="attribute" optionLabel="name" :filter="true"></MultiSelect>
+							<label for="multiselect">Attribute</label>
 						</span>
 					</div>
 
@@ -21,12 +25,43 @@
 					</div>
 				</div>
 
-				<hr style="margin-top: 7px">
 
-				<div class="demo-img" v-if="is_show">
-					<img src="../assets/img/hole_info.webp">
-					<img src="../assets/img/hole_graph.png">
+				<div style="height: 90vh; overflow: auto;" v-if="depth_list && msg==''">
+					<hr class="mt-2">
+					<div id="chart" style="width: 100%;height:500px;"></div>
 				</div>
+
+				<div style="height: 62vh; overflow: auto;" v-if="msg!=''">
+					<div style="height: 62vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+						<div>
+							<span style="font-size:25px;color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">Loading...</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="table-responsive">
+					<table class="table table-bordered" v-for="(item, index) in depth_list" :key="index">
+						<tr>
+							<th>Well</th>
+							<th>Attribute</th>
+							<th>Depth__m</th>
+							<th>East__m</th>
+							<th>North__m</th>
+							<th>SPPA__kPa</th>
+							<th>TVD__m</th>
+						</tr>
+						<tr v-for="(row, index2) in item.data.Depth__m" :key="index2">
+							<td>{{item.name}}</td>
+							<td>{{item.attribute}}</td>
+							<td>{{item.data.Depth__m[index2] ? item.data.Depth__m[index2] : ''}}</td>
+							<td>{{item.data.East__m[index2] ? item.data.East__m[index2] : ''}}</td>
+							<td>{{item.data.North__m[index2] ? item.data.North__m[index2] : ''}}</td>
+							<td>{{item.data.SPPA__kPa[index2] ? item.data.SPPA__kPa[index2] : ''}}</td>
+							<td>{{item.data.TVD__m[index2] ? item.data.TVD__m[index2] : ''}}</td>
+						</tr>
+					</table>
+				</div>
+
 			</div>
 		</div>
 	</div>
@@ -35,7 +70,7 @@
 
 <script>
 import axios from 'axios';
-// import ChartService from '../service/ChartService';
+import ChartService from '../service/ChartService';
 
 export default {
 	data() {
@@ -44,49 +79,48 @@ export default {
 			attributes : [],
 			wells 	   : [],
 			attribute  : [],
-			depth_list : [],
-			is_show:false,
+			response   : '',
+			depth_list : '',
+			msg 	   : '',
 		}
 	},
 	created() {
 		//
 	},
 	mounted() {
-		axios.get('http://localhost:4000/visualize/1/depth')
+		axios.get('http://drillbotics.ddns.net:4001/visualize/1/depth')
 		.then(response=>{
 			this.visualizes = response.data[0];
 			this.attributes = response.data[1];
 		});
+
+		// axios.get('http://drillbotics.ddns.net:4001/design/1', [
+		// 	this.wells, this.attribute, [[], []]
+		// ])
+		// .then(response=>{
+		// 	this.depth_list = (response.data).traj;
+		// 	console.log(this.depth_list);
+		// 	ChartService.trajectoryMap((response.data).traj, 'chart');
+		// });
 	},
 	methods:{
 		submit:function(){
-			if((this.wells).length > 0)
-				this.is_show = true;
-			else 
-				this.is_show = false;
+			this.depth_list = '';
+			this.msg = 'Loading'
+			axios.post('http://drillbotics.ddns.net:4001/design', [
+				this.wells, this.attribute, [[], []]
+			])
+			.then(response=>{
+				this.msg = '';
+				this.depth_list = response.data.result;
+				setTimeout(()=>{ChartService.trajectoryMap((response.data).result, 'chart');}, 100);
+			});
 		}
-	},
-	watch:{
-		
 	}
 }
 </script>
 
 <style scoped len="scss">
-	.demo-img {
-		display: flex;
-	}
-	.demo-img img:nth-child(1){
-		width: 50%;
-		height: fit-content;
-	}
-	.demo-img img:nth-child(2){
-		width: 50%;
-		height: fit-content;
-	}
-	.p-float-label input:focus ~ label, .p-float-label input.p-filled ~ label, .p-float-label textarea:focus ~ label, .p-float-label textarea.p-filled ~ label, .p-float-label .p-inputwrapper-focus ~ label, .p-float-label .p-inputwrapper-filled ~ label {
-		top: -0.40rem;
-	}
 	.table {
 		border-collapse: collapse;
 	}
@@ -109,18 +143,5 @@ export default {
 	}
 	.p-picklist-list {
 		height: 195px!important;
-	}.row{
-		display: flex;
-	}
-	.row .col-6 {
-		width: 50%;
-		border:  2px solid #ddd;
-	}
-	.row .col-6 + .col-6 {
-		margin-left: -2px;
-
-	}
-	.row + .row {
-		margin-top: -2px;
 	}
 </style>

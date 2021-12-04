@@ -110,6 +110,8 @@ export default
                                 }
                             ];
 
+                            console.log(option);
+
                             var layout  = {
                                 bargap: 0.05,
                                 bargroupgap: 0.2,
@@ -181,24 +183,24 @@ export default
                     {
                         var dom_id        = (name.replaceAll('$', '_'))+'at'+(attr.slice(attr.lastIndexOf('__')+2));
                         var exist_unit    = (dom_id.slice(dom_id.lastIndexOf('at')+2, dom_id.lastIndexOf('_id'))).replaceAll('_', '.');
-                        var standard_attr = ''; 
-
-                        if(time){
+                        var standard_attr = '';
+                        //
+                        if(time)
+                        {
                             dom_id     = (name.replaceAll('$', '_'))+'at'+(attr.slice(attr.indexOf('_')+1));
                             exist_unit = (dom_id.slice(dom_id.lastIndexOf('at')+2, dom_id.lastIndexOf('_id'))).replaceAll('_', '.');
                         }
-
-                        // 
+                        //
                         var node = document.querySelector('#'+dom_id);
-                        if(node){
+                        if(node)
+                        {
                             node.innerHTML = '';
-                            // 
                             Object.values(attribute).forEach((standard_att)=>{
                                 if(standard_att.unit==exist_unit){
                                     standard_attr = standard_att;
                                 }
                             });
-
+                            // 
                             var option = [
                                 {
                                     type: 'scatter',
@@ -208,7 +210,7 @@ export default
                                     y: this.data_shorting(well.data[attr], 1000),
                                 }
                             ];
-
+                            // 
                             var layout  = {
                                 bargap: 0.05,
                                 bargroupgap: 0.2,
@@ -228,13 +230,11 @@ export default
                 }
 
             });
-
         }
 
         else if(grid.value=='multiple'){
             Object.values(attribute).forEach((attr)=>{
                 var dom_id = (attr.unit).replaceAll('.', '_')+'_id_'+attr.id;
-
                 var option = [];
                 //
                 Object.values(data).forEach(well=>{
@@ -245,15 +245,16 @@ export default
                                 option.push({
                                     type: 'scatter',
                                     mode: 'line',
-                                    marker:{ size:3},
+                                    marker:{size:3},
                                     x: this.data_shorting(time_value, 1000),
                                     y: this.data_shorting(well.data[attr], 1000),
                                 });
                             }
                         }
-                        
                     }
                 });
+
+                console.log(option);
 
                 if(option.length > 0){
                     document.querySelector('#'+dom_id).innerHTML='';
@@ -277,7 +278,8 @@ export default
     },
 
     data_shorting:function(data, num){
-        var len = data.length, j, i, y;
+
+        var len = (data ? data.length : 0), j, i, y;
         if(len<num+1) return data;
         if(len%num === 0 ){
             j = Math.floor(len/num);
@@ -410,9 +412,8 @@ export default
             var map_data = {
                 x:(noddle.traj_data ? noddle.traj_data.East__m : noddle.data.East__m),
                 y:(noddle.traj_data ? noddle.traj_data.North__m : noddle.data.North__m),
-                z:(noddle.traj_data ? noddle.traj_data.TVD__m.map((c) =>  c*-1) : noddle.data.TVD__m.map((c) =>  c*-1)),
+                z:(noddle.traj_data ? noddle.traj_data.Depth__m.map((c) =>  c*-1) : noddle.data.Depth__m.map((c) =>  c*-1)),
             };
-
 
             if(map_data.x)
             for(var index in map_data.x){
@@ -422,15 +423,15 @@ export default
             series.push({
                 name: noddle.name,
                 type: 'scatter3D',
-                symbolSize: 2.5,
+                symbolSize: 1.8,
                 datasetIndex:trajectory,
                 encode: {
                     tooltip: [0, 1, 2, 3, 4]
                 },
                 dimensions: [
-                    'x',
-                    'y',
-                    'z',
+                    'East',
+                    'North',
+                    'Depth',
                     'Wells',
                 ],
                 data:data
@@ -451,10 +452,18 @@ export default
             tooltip: {},
             grid3D: {},
             xAxis3D: {
-                type: 'category'
+                type: 'category',
+                name:'East',
+                nameGap: 30
             },
-            yAxis3D: {},
-            zAxis3D: {},
+            yAxis3D: {
+                name:'North',
+                nameGap: 30
+            },
+            zAxis3D: {
+                name:'Depth',
+                nameGap: 30
+            },
             series: series
         };
         myChart.setOption(option);

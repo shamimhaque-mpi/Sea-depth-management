@@ -58,7 +58,7 @@ export default {
 		//
 	},
 	mounted() {
-		axios.get('http://localhost:4000/visualize/1/time')
+		axios.get('http://drillbotics.ddns.net:4001/visualize/1/time')
 		.then(response=>{
 			this.visualizes = response.data[0];
 			ChartService.location(this.visualizes, 'chart');

@@ -54,13 +54,13 @@ export default {
 		//
 	},
 	mounted() {
-		axios.get('http://localhost:4000/visualize/1/depth')
+		axios.get('http://drillbotics.ddns.net:4001/visualize/1/depth')
 		.then(response=>{
 			this.visualizes = response.data[0];
 			this.attributes = response.data[1];
 		});
 
-		axios.get('http://localhost:4000/design/1', [
+		axios.get('http://drillbotics.ddns.net:4001/design/1', [
 			this.wells, this.attribute, [[], []]
 		])
 		.then(response=>{
@@ -71,7 +71,7 @@ export default {
 	},
 	methods:{
 		submit:function(){
-			axios.post('http://localhost:4000/design', [
+			axios.post('http://drillbotics.ddns.net:4001/design', [
 				this.wells, this.attribute, [[], []]
 			])
 			.then(response=>{

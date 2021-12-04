@@ -113,6 +113,7 @@ export default {
 				this.wells, this.attribute, [[], []]
 			])
 			.then(response=>{
+				console.log(response.data);
 				this.submited_wells = this.wells;
 				this.submited_attr  = this.attribute;
 				this.data_sanitization(this.reformat(response.data));
@@ -128,6 +129,7 @@ export default {
 			// function depth_data_ordering(depth_data, i)
 			function depth_data_ordering(depth_row)
 			{
+				// console.log(depth_row);
 				return new Promise((resolve)=>{
 					var data = {};
 					(depth_row.data).forEach(item=>{
@@ -182,11 +184,10 @@ export default {
 					}
 				});
 			});
-
 			return reformated_data;
 		},
 		replaceKeyByattr:function(data){
-			var attr    = data.well_att;
+			var attr   = data.well_att;
 			var packet = [];
 			Object.values(data.data).forEach(item=>{
 				packet.push({[attr]:item.mean_value, time:item.time});
