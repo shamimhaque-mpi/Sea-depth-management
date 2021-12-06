@@ -31,9 +31,17 @@
 
 				<div v-if="grid.value=='single'">
 					<div class="graph-row"  v-for="(well, index) in submited_wells" v-bind:key="index">
-						<div class="graph-collum" v-for="(attr, index) in submited_attr" v-bind:key="index">
-							<div style="height: 62vh; overflow: auto;">
-								<div :id="((well.name).replaceAll('$', '_'))+'at'+(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;">
+						<div class="graph-collum" v-for="(attr, index2) in submited_attr" v-bind:key="index2" :ref="index+'view'+index2">
+
+							<button class="action-btn open" @click="fullScreen(index+'view'+index2)">
+								<svg viewBox="0 0 1000 1000" class="icon" height="1em" width="1em">
+									<path d="m1000 350l-187 188 0-125-250 0 0 250 125 0-188 187-187-187 125 0 0-250-250 0 0 125-188-188 186-187 0 125 252 0 0-250-125 0 187-188 188 188-125 0 0 250 250 0 0-126 187 188z" transform="matrix(1 0 0 -1 0 850)"></path>
+								</svg>
+							</button>
+							<button class="action-btn close" @click="fullScreen(index+'view'+index2)">&times;</button>
+
+							<div style="height: 62vh; overflow: auto;" class="ttk_check">
+								<div :id="((well.name).replaceAll('$', '_'))+'at'+(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;" class="ttk_check2">
 									<div style="height: 62vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
 										<div>
 											<span style="font-size: 60px; color: #d8d6d6;">¯\_(ツ)_/¯</span>
@@ -50,9 +58,17 @@
 
 				<div v-if="grid.value=='multiple'">
 					<div class="row" v-for="(attr, index) in submited_attr" v-bind:key="index">
-						<div class="col-12 border">
-							<div style="height: 62vh; overflow: auto;">
-								<div :id="(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;">
+						<div class="col-12 border sigle_colum" :ref="index+'view'">
+
+							<button class="action-btn open" @click="fullScreen(index+'view')">
+								<svg viewBox="0 0 1000 1000" class="icon" height="1em" width="1em">
+									<path d="m1000 350l-187 188 0-125-250 0 0 250 125 0-188 187-187-187 125 0 0-250-250 0 0 125-188-188 186-187 0 125 252 0 0-250-125 0 187-188 188 188-125 0 0 250 250 0 0-126 187 188z" transform="matrix(1 0 0 -1 0 850)"></path>
+								</svg>
+							</button>
+							<button class="action-btn close" @click="fullScreen(index+'view')">&times;</button>
+
+							<div style="height: 62vh; overflow: auto;" class="ttk_check">
+								<div :id="(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;" class="ttk_check2">
 									<div style="height: 62vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
 										<div>
 											<span style="font-size: 60px; color: #d8d6d6;">¯\_(ツ)_/¯</span>
@@ -104,6 +120,16 @@ export default {
 		});
 	},
 	methods:{
+		fullScreen:function(refs){
+			console.log(refs);
+			if((this.$refs[refs]).classList.toggle('view')){
+				window.document.querySelector('body').style.overflow = 'hidden';
+			}
+			else{
+				window.document.querySelector('body').style.overflow = 'inherit';
+			}
+			this.generateGrap();
+		},
 		submit:function(){
 			this.depth_list 	= [];
 			this.submited_wells = [];
@@ -231,6 +257,8 @@ export default {
 	.graph-row .graph-collum {
 		min-width: 50%!important;
 		border: 1px solid #ddd;
+		position: relative;
+		transition: all .5s linear;
 	}
 	.graph-row .graph-collum + .graph-collum {
 		margin-left: -1px;
@@ -256,4 +284,54 @@ export default {
 	.row + .row {
 		margin-top: -2px;
 	}
+
+
+
+	/* for full screen */
+	.sigle_colum {
+		position: relative;
+	}
+	.graph-collum.view, .sigle_colum.view {
+		position: fixed!important;
+		top: 50%;
+		left: 50%;
+		z-index: 100010;
+		background: #f8f9fa;
+		width: 100%;
+		height: 100vh;
+		transform: translate(-50%, -50%);
+	}
+	.view .ttk_check2, .sigle_colum.view, .view .ttk_check {
+		height: 100vh!important;
+	}
+	.graph-collum .action-btn, .sigle_colum .action-btn {
+		position: absolute;
+		top: 5px;
+		left: 5px;
+		width: 30px;
+		height: 30px;
+		background: #ddd;
+		z-index: 995;
+		border: 1px solid #00000012;
+		background: #0000000a;
+		cursor: pointer;
+	}
+	.sigle_colum {
+		transition: all .5s linear;
+	}
+
+	.sigle_colum .open, .sigle_colum.view .close, .graph-collum .open, .graph-collum.view .close {
+		display: block;
+	}
+
+	.sigle_colum.view .open, .sigle_colum .close, .graph-collum.view .open, .graph-collum .close {
+		display: none;
+	}
+	.graph-collum .action-btn:hover {
+		border: 1px solid #ff00474a;
+	}
+	.body-overflow {
+		overflow: hidden!important;
+	}
+
 </style>
