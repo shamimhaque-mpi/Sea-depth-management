@@ -32,7 +32,7 @@
 				<div v-if="grid.value=='single'">
 					<div class="graph-row" v-for="(well, index) in submited_wells" v-bind:key="index">
 						<div class="graph-collum" v-for="(attr, index2) in submited_attr" v-bind:key="index2" :ref="index+'view'+index2">
-							<button class="action-btn open" @click="fullScreen(index+'view'+index2)">
+							<button class="action-btn open" @click="fullScreen(index+'view'+index2)" style="padding:8px">
 								<svg viewBox="0 0 1000 1000" class="icon" height="1em" width="1em">
 									<path d="m1000 350l-187 188 0-125-250 0 0 250 125 0-188 187-187-187 125 0 0-250-250 0 0 125-188-188 186-187 0 125 252 0 0-250-125 0 187-188 188 188-125 0 0 250 250 0 0-126 187 188z" transform="matrix(1 0 0 -1 0 850)"></path>
 								</svg>
@@ -57,7 +57,7 @@
 				<div v-if="grid.value=='multiple'">
 					<div class="row" v-for="(attr, index) in submited_attr" v-bind:key="index">
 						<div class="col-12 border sigle_colum" :ref="index+'view'">
-							<button class="action-btn open" @click="fullScreen(index+'view')">
+							<button class="action-btn open" @click="fullScreen(index+'view')" style="padding:8px">
 								<svg viewBox="0 0 1000 1000" class="icon" height="1em" width="1em">
 									<path d="m1000 350l-187 188 0-125-250 0 0 250 125 0-188 187-187-187 125 0 0-250-250 0 0 125-188-188 186-187 0 125 252 0 0-250-125 0 187-188 188 188-125 0 0 250 250 0 0-126 187 188z" transform="matrix(1 0 0 -1 0 850)"></path>
 								</svg>
@@ -135,7 +135,6 @@ export default {
 				this.wells, this.attribute, [[], []]
 			])
 			.then(response=>{
-				console.log(response.data);
 				this.submited_wells = this.wells;
 				this.submited_attr  = this.attribute;
 				this.data_sanitization(response.data);

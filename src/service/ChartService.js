@@ -68,7 +68,6 @@ export default
         return 1
     },
 
-
     statisticalVisualization:function(data, attribute, grid, time=false)
     {
         if(grid.value=='single'){
@@ -110,8 +109,6 @@ export default
                                 }
                             ];
 
-                            console.log(option);
-
                             var layout  = {
                                 bargap: 0.05,
                                 bargroupgap: 0.2,
@@ -123,6 +120,11 @@ export default
                                 xaxis: {title: standard_attr.standard_name},
                             };
                             window.Plotly.newPlot(dom_id, option, layout);
+
+                            // DOWNLOAD PART
+                            var download_data = [];
+                            well.data[origin].map(x=>(x ? download_data.push([x]) : ''));
+                            this.mkDownload(dom_id, download_data, `single-statistical-visualization(${name})`);
                         }
                     }
                 }
@@ -135,11 +137,13 @@ export default
             Object.values(attribute).forEach((attr)=>{
                 var dom_id = (attr.unit).replaceAll('.', '_')+'_id_'+attr.id;
 
-                var option = [];
+                var option        = [];
+                var download_data = {};
                 //
                 Object.values(data).forEach(well=>{
                     for(var index in well.data){
                         if(dom_id==index.slice((index.lastIndexOf('__')+2)) || dom_id==index.slice((index.indexOf('_')+1))){
+                            Object.assign(download_data, {[well.name]:well.data[index]});
                             option.push({
                                 "x"     : well.data[index].filter(x=>{if(x>0) return x}),
                                 "name"  : well.name,
@@ -147,13 +151,11 @@ export default
                                 "histnorm" : "probability",
                                 "opacity"  : 0.5,
                             });
-
                         }
                     }
                 });
 
                 if(option.length > 0){
-                    console.log(document.querySelector('#'+dom_id));
                     document.querySelector('#'+dom_id).innerHTML='';
                     var layout  = {
                         bargap: 0.05,
@@ -166,6 +168,42 @@ export default
                         xaxis: {title: 'Normalized measurement %'},
                     };
                     window.Plotly.newPlot(dom_id, option, layout);
+                   
+
+                    // DOWNLOAD PART
+                    var csv = [];
+                    csv.push(Object.keys(download_data));
+
+                    var index = 0;
+                    for(const row in download_data)
+                    {
+                        var i = 1;
+                        (download_data[row]).forEach((value)=>{
+                            var arr_data = [];
+                            Object.values(download_data).forEach(niddle=>{arr_data.push('');niddle;});
+                            if(index==0)
+                            {
+                                if(value){
+                                    arr_data[index] = value;
+                                    csv.push(arr_data);
+                                }
+                            }
+                            else if(index > 0 && value)
+                            {
+                                if(csv[(i)]){
+                                    csv[(i)][index] = value;
+                                }
+                                else {
+                                    arr_data[index] = value;
+                                    csv.push(arr_data);
+                                }
+                                i++;
+                            }
+                        });
+                        index++; 
+                    }
+                    this.mkDownload(dom_id, csv, `Multiple-statistical-visualization(${attr.standard_name})`);
+                    return 0;
                 }
             });
         }
@@ -410,8 +448,8 @@ export default
             legend_data.push(noddle.name);
 
             var map_data = {
-                x:(noddle.traj_data ? noddle.traj_data.East__m : noddle.data.East__m),
-                y:(noddle.traj_data ? noddle.traj_data.North__m : noddle.data.North__m),
+                x:(noddle.traj_data ? noddle.traj_data.North__m : noddle.data.North__m),
+                y:(noddle.traj_data ? noddle.traj_data.East__m : noddle.data.East__m),
                 z:(noddle.traj_data ? noddle.traj_data.Depth__m.map((c) =>  c*-1) : noddle.data.Depth__m.map((c) =>  c*-1)),
             };
 
@@ -429,17 +467,14 @@ export default
                     tooltip: [0, 1, 2, 3, 4]
                 },
                 dimensions: [
-                    'East',
                     'North',
+                    'East',
                     'Depth',
                     'Wells',
                 ],
                 data:data
             });
         }
-
-        
-
         var chartDom = document.getElementById(dom_id);
         var myChart  = echarts.init(chartDom);
 
@@ -453,11 +488,11 @@ export default
             grid3D: {},
             xAxis3D: {
                 type: 'category',
-                name:'East',
+                name:'North',
                 nameGap: 30
             },
             yAxis3D: {
-                name:'North',
+                name:'East',
                 nameGap: 30
             },
             zAxis3D: {
@@ -469,6 +504,44 @@ export default
         myChart.setOption(option);
 
         option && myChart.setOption(option);
-    }
+    },
+
+    mkDownload:function(id, data, file_name='download_csv'){
+        var btn = document.createElement('button');
+        btn.setAttribute('style', `
+            position: absolute;
+            top: 5px;
+            left: 40px;
+            width: 30px;
+            height: 30px;
+            background: #ddd;
+            z-index: 995;
+            border: 1px solid #00000012;
+            background: #0000000a;
+            cursor: pointer;
+            padding:2px;
+        `);
+        btn.innerHTML = `
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAAl0lEQVRIie3VIQ7CQBBG4Q9uUYVAYBAgUByfwCGaUIEgqSAcoYiyQJoG2qUVhP2TUZt5z+zM8E/Zo7rXrmvTpIegiumd9hBEJQmSYFxB4TlYzRnQeDvGyDe4NEBtdcU2RgBrlG/gJVax8JAFTi3wM5bfwkNmyF/gBeZDwUMyHNRbNRsanoL6Sn36813rcfHGWhVtk/+juQGi2j7/B36KCgAAAABJRU5ErkJggg=="/>
+        `;
+        btn.addEventListener('click', ()=>{
+            // const rows = [
+            //     ["name1", "city1", "some other info"],
+            //     ["name2", "city2", "more info"]
+            // ];
+            
+            let csvContent = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${file_name}.csv`);
+            document.body.appendChild(link);
+            link.click()
+        });
+
+        var dom = window.document.querySelector(`#${id}`);
+        dom.prepend(btn);
+        data;
+    },
 
 }

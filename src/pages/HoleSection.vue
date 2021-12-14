@@ -38,8 +38,8 @@
 						</div>
 					</div>
 				</div>
-
-				<div class="table-responsive">
+				<hr>
+				<div class="table-responsive" style="max-height:400px; overflow:auto">
 					<table class="table table-bordered" v-for="(item, index) in depth_list" :key="index">
 						<tr>
 							<th>Well</th>
