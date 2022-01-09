@@ -1,12 +1,14 @@
 <template>
 	<div class="grid">
 		<div class="col-12">
-			<div class="card" style="min-height: 79vh;">
+			<div class="card" style="min-height: 79vh; position: relative;">
 				<div class="custom-table-head">
 					<h5>Time Spacifical Visualization</h5>
 					<Dropdown v-model="grid" :options="griding" optionLabel="name" placeholder="Select" />
 				</div>
+
 				<hr style="margin-top: 2px;">
+
 				<div class="grid p-fluid">
 					<div class="col-12 md:col-5">
 						<span class="p-float-label">
@@ -30,8 +32,8 @@
 				<hr class="mt-2">
 
 				<div v-if="grid.value=='single'">
-					<div class="graph-row"  v-for="(well, index) in submited_wells" v-bind:key="index">
-						<div class="graph-collum" v-for="(attr, index2) in submited_attr" v-bind:key="index2" :ref="index+'view'+index2">
+					<div class="graph-row"  v-for="(row, index) in well_group" v-bind:key="index">
+						<div class="graph-collum" v-for="(well, index2) in row" v-bind:key="index2" :ref="index+'view'+index2">
 
 							<button class="action-btn open" @click="fullScreen(index+'view'+index2)">
 								<svg viewBox="0 0 1000 1000" class="icon" height="1em" width="1em">
@@ -41,12 +43,12 @@
 							<button class="action-btn close" @click="fullScreen(index+'view'+index2)">&times;</button>
 
 							<div style="height: 62vh; overflow: auto;" class="ttk_check">
-								<div :id="((well.name).replaceAll('$', '_'))+'at'+(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;" class="ttk_check2">
+								<div :id="(index+well.well_att).replaceAll('$', '_')" style="width: 100%;height:400px;" class="ttk_check2">
 									<div style="height: 62vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
 										<div>
 											<span style="font-size: 60px; color: #d8d6d6;">¯\_(ツ)_/¯</span>
-											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 17px">{{well.name}}</span>
-											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">{{attr.standard_name}}</span>
+											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 17px">{{index}}</span>
+											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">{{well.well_att}}</span>
 											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">Data is not found</span>
 										</div>
 									</div>
@@ -57,7 +59,7 @@
 				</div>
 
 				<div v-if="grid.value=='multiple'">
-					<div class="row" v-for="(attr, index) in submited_attr" v-bind:key="index">
+					<div class="row" v-for="(well, index) in well_group" v-bind:key="index">
 						<div class="col-12 border sigle_colum" :ref="index+'view'">
 
 							<button class="action-btn open" @click="fullScreen(index+'view')">
@@ -68,17 +70,24 @@
 							<button class="action-btn close" @click="fullScreen(index+'view')">&times;</button>
 
 							<div style="height: 62vh; overflow: auto;" class="ttk_check">
-								<div :id="(attr.unit).replaceAll('.', '_')+'_id_'+attr.id" style="width: 100%;height:400px;" class="ttk_check2">
+								<div :id="(index).replaceAll('$', '_')" style="width: 100%;height:400px;" class="ttk_check2">
 									<div style="height: 62vh; overflow: hidden; display: flex; justify-content: center; align-items: center;">
 										<div>
 											<span style="font-size: 60px; color: #d8d6d6;">¯\_(ツ)_/¯</span>
-											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">{{attr.standard_name}}</span>
+											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">{{index}}</span>
 											<span style="color: rgb(153 153 153); display: block; text-align: center; margin-top: 5px">Data is not found</span>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<div class="loader" v-if="loader">
+					<div style="display: grid; text-align:center;">
+						<i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+						<h3>Loading...</h3>
 					</div>
 				</div>
 
@@ -107,10 +116,9 @@ export default {
 			grid:{name:"Single", value:"single"},
 			submited_wells: [],
 			submited_attr: [],
+			well_group   : [],
+			loader 		 : false,
 		}
-	},
-	created() {
-		//
 	},
 	mounted() {
 		axios.get('http://drillbotics.ddns.net:4001/visualize/1/time')
@@ -121,112 +129,52 @@ export default {
 	},
 	methods:{
 		fullScreen:function(refs){
-			console.log(refs);
 			if((this.$refs[refs]).classList.toggle('view')){
 				window.document.querySelector('body').style.overflow = 'hidden';
 			}
 			else{
 				window.document.querySelector('body').style.overflow = 'inherit';
 			}
-			this.generateGrap();
+			setTimeout(()=>{ChartService.timeSpacificalVisualization(this.well_group, this.attribute,  this.grid, true), 100});
 		},
 		submit:function(){
 			this.depth_list 	= [];
 			this.submited_wells = [];
 			this.submited_attr  = [];
+			this.well_group  = [];
+			this.loader = true;
 
 			axios.post('http://drillbotics.ddns.net:4001/visualize/time', [
 				this.wells, this.attribute, [[], []]
 			])
 			.then(response=>{
-				console.log(response.data);
+				this.well_group = this.mkGroup(response.data);
+				//
 				this.submited_wells = this.wells;
 				this.submited_attr  = this.attribute;
-				this.data_sanitization(this.reformat(response.data));
+				this.loader = false;
 			});
 		},
-		data_sanitization:function(depth_data)
-		{
-			/*
-			* *************************
-			* DEPTH DATA ORDERING
-			* *************************
-			*/
-			// function depth_data_ordering(depth_data, i)
-			function depth_data_ordering(depth_row)
-			{
-				// console.log(depth_row);
-				return new Promise((resolve)=>{
-					var data = {};
-					(depth_row.data).forEach(item=>{
-						for(var i in item){
-							if(data[i]){
-								(data[i]).push(item[i]);
-							}else {
-								data[i] = [item[i]];
-							}
-						}
-					});
-					resolve({"name":depth_row.name, "data":data});
-				});
-			}
-
-			// STORE ALL PROMISED DATA
-			var final_depth_list = [];
+		mkGroup(data){
+			var group = {};
 			//
-			(depth_data).forEach((row)=>{
-				final_depth_list.push(depth_data_ordering(row));
-			});
-
-			// FETCH ALL PROMISE DATA
-			Promise.all(final_depth_list)
-			.then(final_depth_list=>{
-				this.depth_list = final_depth_list;
-			})
-			.catch(err=>console.log(err.message))
-		},
-		generateGrap:function(){
-			setTimeout(()=>{ChartService.timeSpacificalVisualization(this.depth_list, this.attribute,  this.grid, true), 100});
-		},
-		reformat:function(data){
-			var reformated_data = [];
-			var check_well = [];
-
-			Object.values(data).forEach(item=>{
-				if(check_well.indexOf(item.well_name)<0){
-					check_well.push(item.well_name);
-					reformated_data.push({
-						name:item.well_name,
-						data:[]
-					});
+			(data).forEach((row)=>{
+				if(group[row.well_name]){
+					(group[row.well_name]).push(row);
+				}
+				else {
+					group[row.well_name] = [row];
 				}
 			});
-
-			Object.values(data).forEach(item=>{
-				(reformated_data).forEach((well, key)=>{
-					if(well.name && well.name==item.well_name){
-						var old_array = reformated_data[key].data;
-						reformated_data[key].data = old_array.concat(this.replaceKeyByattr(item));
-					}
-				});
-			});
-			return reformated_data;
+			return group;
 		},
-		replaceKeyByattr:function(data){
-			var attr   = data.well_att;
-			var packet = [];
-			Object.values(data.data).forEach(item=>{
-				packet.push({[attr]:item.mean_value, time:item.time});
-			});
-			return packet;
-		}
 	},
 	watch:{
-		depth_list:function(){
-			this.generateGrap();
+		well_group:function(){
+			setTimeout(()=>{ChartService.timeSpacificalVisualization(this.well_group, this.attribute,  this.grid), 100});
 		},
 		grid:function(){
-			this.generateGrap();
+			setTimeout(()=>{ChartService.timeSpacificalVisualization(this.well_group, this.attribute,  this.grid), 100});
 		}
 	}
 }
@@ -332,6 +280,12 @@ export default {
 	}
 	.body-overflow {
 		overflow: hidden!important;
+	}
+	.loader {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%)
 	}
 
 </style>

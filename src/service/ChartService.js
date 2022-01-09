@@ -209,109 +209,97 @@ export default
         }
     },
 
-    timeSpacificalVisualization:function(data, attribute, grid, time=true)
+    timeSpacificalVisualization:function(data, attribute, grid)
     {
-        if(grid.value=='single'){
-            Object.values(data).forEach((well)=>{
-                var name = well.name;
-                var time_value = well.data.time;
-                for(var attr in well.data){
-                    attr = attr.replace('_dot_', '_');
-                    if(attr!='time')
-                    {
-                        var dom_id        = (name.replaceAll('$', '_'))+'at'+(attr.slice(attr.lastIndexOf('__')+2));
-                        var exist_unit    = (dom_id.slice(dom_id.lastIndexOf('at')+2, dom_id.lastIndexOf('_id'))).replaceAll('_', '.');
-                        var standard_attr = '';
-                        //
-                        if(time)
-                        {
-                            dom_id     = (name.replaceAll('$', '_'))+'at'+(attr.slice(attr.indexOf('_')+1));
-                            exist_unit = (dom_id.slice(dom_id.lastIndexOf('at')+2, dom_id.lastIndexOf('_id'))).replaceAll('_', '.');
-                        }
-                        //
-                        var node = document.querySelector('#'+dom_id);
-                        if(node)
-                        {
-                            node.innerHTML = '';
-                            Object.values(attribute).forEach((standard_att)=>{
-                                if(standard_att.unit==exist_unit){
-                                    standard_attr = standard_att;
-                                }
-                            });
-                            // 
-                            var option = [
-                                {
-                                    type: 'scatter',
-                                    mode: 'line',
-                                    marker:{ size:3},
-                                    x: this.data_shorting(time_value, 1000),
-                                    y: this.data_shorting(well.data[attr], 1000),
-                                }
-                            ];
-                            // 
-                            var layout  = {
-                                bargap: 0.05,
-                                bargroupgap: 0.2,
-                                barmode: "overlay",
-                                // height: 405,
-                                // width: 648,
-                                title: {text: name},
-                                yaxis: {title: standard_attr.standard_name},
-                                xaxis: {
-                                    autorange: true,
-                                    type: 'date'
-                                },
-                            };
-                            window.Plotly.newPlot(dom_id, option, layout);
-                        }
+        if(grid.value=='single')
+        {
+            Object.values(data).forEach((well_atts)=>{
+                Object.values(well_atts).forEach(attr=>{
+                    var unit = (attr.well_att).slice((attr.well_att).indexOf('_')+1, (attr.well_att).lastIndexOf('_id'));
+                        unit = unit.replace('_dot_', '.');
+                    // FETCH STANDARD ATTRIBUTE NAME
+                    var unit_name = "";
+                    attribute.map(e=>{
+                        if(e.unit==unit) unit_name = e.standard_name;
+                    });
+                    //
+                    var node = document.querySelector('#'+((attr.well_name)+(attr.well_att)).replaceAll('$', '_'));
+                    if(node){
+                        node.innerHTML = '';
+                        var option = [
+                            {
+                                type: 'scatter',
+                                mode: 'line',
+                                marker:{ size:3},
+                                x: this.data_shorting((attr.data).map(x=>x.time), 1000),
+                                y: this.data_shorting((attr.data).map(x=>x.mean_value), 1000),
+                            }
+                        ];
+                        // 
+                        var layout  = {
+                            bargap: 0.05,
+                            bargroupgap: 0.2,
+                            barmode: "overlay",
+                            // height: 405,
+                            // width: 648,
+                            title: {text: attr.well_name},
+                            yaxis: {title: unit_name},
+                            xaxis: {
+                                autorange: true,
+                                type: 'date'
+                            },
+                        };
+                        window.Plotly.newPlot(((attr.well_name)+(attr.well_att)).replaceAll('$', '_'), option, layout);
                     }
-                }
-
+                });
             });
         }
 
         else if(grid.value=='multiple'){
-            Object.values(attribute).forEach((attr)=>{
-                var dom_id = (attr.unit).replaceAll('.', '_')+'_id_'+attr.id;
-                var option = [];
-                //
-                Object.values(data).forEach(well=>{
-                    var time_value = well.data.time;
-                    for(var index in well.data){
-                        if(index!='time'){
-                            if(dom_id==index.slice((index.lastIndexOf('__')+2)) || dom_id==index.slice((index.indexOf('_')+1))){
-                                option.push({
-                                    type: 'scatter',
-                                    mode: 'line',
-                                    marker:{size:3},
-                                    x: this.data_shorting(time_value, 1000),
-                                    y: this.data_shorting(well.data[attr], 1000),
-                                });
-                            }
-                        }
+
+            for (const index in data) {
+                var node = (index).replaceAll('$', '_'), option = [];
+                // 
+                if(document.querySelector('#'+node)){
+                    Object.values(data[index]).forEach(attr=>{
+
+                        var unit = (attr.well_att).slice((attr.well_att).indexOf('_')+1, (attr.well_att).lastIndexOf('_id'));
+                            unit = unit.replace('_dot_', '.');
+                        // FETCH STANDARD ATTRIBUTE NAME
+                        var unit_name = "";
+                        attribute.map(e=>{
+                            if(e.unit==unit) unit_name = e.standard_name;
+                        });
+                        // MAKE MORE OPTIONS
+                        option.push({
+                            type: 'scatter',
+                            mode: 'line',
+                            marker:{ size:3},
+                            name:unit_name,
+                            x: this.data_shorting((attr.data).map(x=>x.time), 1000),
+                            y: this.data_shorting(this.data_normalize((attr.data).map(x=>x.mean_value))[0], 1000),
+                        });
+                    });
+
+                    if(option.length > 0){
+                        document.querySelector('#'+node).innerHTML='';
+                        var layout  = {
+                            bargap: 0.05,
+                            bargroupgap: 0.2,
+                            barmode: "overlay",
+                            title: {text: index},
+                            yaxis: {title: 'Normalized measurement %'},
+                            xaxis: {
+                                autorange: true,
+                                type: 'date'
+                            },
+                        };
+                        window.Plotly.newPlot(node, option, layout);
                     }
-                });
 
-                console.log(option);
-
-                if(option.length > 0){
-                    document.querySelector('#'+dom_id).innerHTML='';
-                    var layout  = {
-                        bargap: 0.05,
-                        bargroupgap: 0.2,
-                        barmode: "overlay",
-                        // height: 405,
-                        // width: 648,
-                        title: {text: name},
-                        yaxis: {title: attr.standard_name},
-                        xaxis: {
-                            autorange: true,
-                            type: 'date'
-                        },
-                    };
-                    window.Plotly.newPlot(dom_id, option, layout);
                 }
-            });
+            }
+ 
         }
     },
 
@@ -331,6 +319,45 @@ export default
             new_array.push(data[i * parseInt(j)]);
         }
         return new_array;
+    },
+
+    data_normalize:function(data){
+        var max = data.reduce(function(a, b) {
+            return Math.max(a, b);
+        });
+
+        var min = data.reduce(function(a, b) {
+            return Math.min(a, b);
+        });
+
+
+
+        if(min === max){
+
+            result = []; i;
+
+            for (i = 0; i < data.length; i++){
+
+            result.push(100);
+
+            }
+
+            return [result,min,max];
+
+        }
+
+
+        var result = [];
+
+        var i;
+
+        for (i = 0; i < data.length; i++){
+
+            result.push((data[i]-min)*100/(max-min));
+
+        }
+
+        return [result,min,max];
     },
 
     spacificVisualization:function(data, attribute, grid)
