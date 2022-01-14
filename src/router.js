@@ -32,12 +32,16 @@ const routes = [
         name: 'Time Statistical Visualization',
         component: () => import('./pages/TimeStatisticalVisualization.vue')
     },
-
-
-
-
-
-
+    {
+        path: '/download-time',
+        name: 'Download Time Base Data',
+        component: () => import('./pages/DownloadTime.vue')
+    },
+    {
+        path: '/download-depth',
+        name: 'Download Depth Base Data',
+        component: () => import('./pages/DownloadDepth.vue')
+    },
     //   REJECT FOR VALIDATION
     {
         path: '/design',

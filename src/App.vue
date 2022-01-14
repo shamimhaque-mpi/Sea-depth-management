@@ -131,6 +131,22 @@ export default {
                         }
                     ]
                 },
+                {
+                    label: 'Download', 
+                    icon: 'pi pi-fw pi-bookmark',
+                    items:[
+                        {
+                            label: 'Depth Base', 
+                            icon: 'pi pi-angle-right', 
+                            to: '/download-Depth'
+                        },
+                        {
+                            label: 'Time Base', 
+                            icon: 'pi pi-angle-right', 
+                            to: '/download-time'
+                        },
+                    ]
+                },
             ]
         }
     },
